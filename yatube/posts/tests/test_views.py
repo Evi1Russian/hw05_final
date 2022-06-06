@@ -300,16 +300,15 @@ class CacheTest(TestCase):
 
     def test_cache(self):
         # при изменении порядка тест перестаёт работать
+        response = self.authorized_client.get(reverse('posts:index'))
         Post.objects.create(
             author=self.user,
             text='Тестовая пост',
             group=self.group
         )
-        posts_count = 1
-        response = self.authorized_client.get(reverse('posts:index'))
-        Post.objects.last().delete()
+        posts_count = 0
         self.assertEqual(len(response.context.get('page_obj')), posts_count)
         cache.clear()
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertEqual(len(response.context.get('page_obj')),
-                         posts_count - 1)
+                         posts_count + 1)
