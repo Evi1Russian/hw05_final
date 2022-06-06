@@ -317,4 +317,3 @@ class CacheTest(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         self.assertEqual(len(response.context.get('page_obj')),
                          posts_count + 1)
-
