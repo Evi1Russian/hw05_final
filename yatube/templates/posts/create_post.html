@@ -20,27 +20,26 @@
             {% endif %}             
           </div>
           <div class="card-body">
-          {% load user_filters %}       
+            {% load user_filters %}       
             <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
               {% for field in form %}            
-              <label for="{{ field.id_for_label }}">
-                {{ field.label }}
+                <label for="{{ field.id_for_label }}">
+                  {{ field.label }}
                   {% if field.field.required %}
                     <span class="required text-danger">*</span>
                   {% endif %}
-              </label>
-              {{ field|addclass:'form-control' }} 
+                </label>
+                {{ field|addclass:'form-control' }} 
                 {% if field.help_text %}
                   <small 
-                     id="{{ field.id_for_label }}-help"
-                     class="form-text text-muted"
+                  id="{{ field.id_for_label }}-help"
+                  class="form-text text-muted"
                   >
                     {{ field.help_text|safe }}
                   </small>
                 {% endif %}
-            </div>
-          {% endfor %}
+              {% endfor %}
               <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-primary">
                   {% if is_edit %}
@@ -53,7 +52,7 @@
             </form>
           </div>
         </div>
-      </div>
+      </div>  
     </div>
   </div>
 {% endblock %}  

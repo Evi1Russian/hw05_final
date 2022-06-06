@@ -18,100 +18,8 @@ User = get_user_model()
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 
-class PostFormsTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = User.objects.create_user(username='HasNoName')
-        cls.group = Group.objects.create(
-            title='Тестовая группа',
-            slug='test-slug',
-            description='Тестовое описание',
-        )
-
-        cls.form = PostForm()
-
-    def setUp(self):
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
-
-    def test_create_post(self):
-        """Валидная форма создаёт новую запись"""
-        form_data = {
-            'text': 'Тестовый текст тестового поста',
-            'group': self.group.id,
-        }
-        posts_count = Post.objects.count()
-        response = self.authorized_client.post(
-            reverse('posts:post_create'),
-            data=form_data,
-        )
-        self.assertRedirects(response, reverse('posts:profile',
-                             kwargs={'username': self.user}))
-        self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertTrue(Post.objects.order_by('-pub_date').filter(
-            pk=1,
-            author=self.user,
-            text='Тестовый текст тестового поста',
-            group=self.group.id).exists())
-
-    def test_edit_post(self):
-        """Валидная форма редактирует существующую запись"""
-        post = Post.objects.create(
-
-            author=self.user,
-            group=self.group
-        )
-        group2 = Group.objects.create(
-            title='Тестовая группа 2',
-            slug='test-slug2',
-            description='Тестовое описание 2',
-        )
-        form_data = {
-            'text': 'Изменённый текст тестового поста',
-            'group': group2.id
-        }
-
-        self.authorized_client.post(
-            reverse('posts:post_edit',
-                    kwargs={'post_id':
-                            post.pk}), data=form_data, follow=True)
-
-        edit_post = Post.objects.get(pk=post.pk)
-        self.assertEqual(
-            edit_post.text, 'Изменённый текст тестового поста')
-        self.assertEqual(
-            edit_post.group.id, group2.id)
-        self.assertEqual(
-            edit_post.author, self.user)
-
-    def test_add_comment(self):
-        post = Post.objects.create(
-
-            author=self.user,
-            group=self.group
-        )
-
-        form_data = {
-            'text': 'Тестовый комментарий',
-        }
-        comments_count = Comment.objects.count()
-        response = self.authorized_client.post(
-            reverse('posts:add_comment',
-                    kwargs={'post_id': post.pk}),
-            data=form_data,
-        )
-        self.assertEqual(Comment.objects.count(), comments_count + 1)
-        self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertTrue(Comment.objects.order_by('-created').filter(
-            pk=1,
-            author=self.user,
-            text='Тестовый комментарий',).exists())
-
-
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
-class ImagePostTests(TestCase):
+class PostFormsTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -166,3 +74,56 @@ class ImagePostTests(TestCase):
             author=self.user,
             text='Тестовый текст тестового поста',
             group=self.group.id,).exists())
+
+    def test_edit_post(self):
+        """Валидная форма редактирует существующую запись"""
+        post = Post.objects.create(
+
+            author=self.user,
+            group=self.group
+        )
+        group2 = Group.objects.create(
+            title='Тестовая группа 2',
+            slug='test-slug2',
+            description='Тестовое описание 2',
+        )
+        form_data = {
+            'text': 'Изменённый текст тестового поста',
+            'group': group2.id
+        }
+
+        self.authorized_client.post(
+            reverse('posts:post_edit',
+                    kwargs={'post_id':
+                            post.pk}), data=form_data, follow=True)
+
+        edit_post = Post.objects.get(pk=post.pk)
+        self.assertEqual(
+            edit_post.text, 'Изменённый текст тестового поста')
+        self.assertEqual(
+            edit_post.group.id, group2.id)
+        self.assertEqual(
+            edit_post.author, self.user)
+
+    def test_add_comment(self):
+        post = Post.objects.create(
+
+            author=self.user,
+            group=self.group
+        )
+
+        form_data = {
+            'text': 'Тестовый комментарий',
+        }
+        comments_count = Comment.objects.count()
+        response = self.authorized_client.post(
+            reverse('posts:add_comment',
+                    kwargs={'post_id': post.pk}),
+            data=form_data,
+        )
+        self.assertEqual(Comment.objects.count(), comments_count + 1)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
+        self.assertTrue(Comment.objects.order_by('-created').filter(
+            pk=1,
+            author=self.user,
+            text='Тестовый комментарий',).exists())
