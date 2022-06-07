@@ -1,6 +1,8 @@
 import shutil
 import tempfile
 
+from http import HTTPStatus
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
@@ -10,7 +12,6 @@ from django.conf import settings
 
 from ..models import Group, Post, Comment
 from ..forms import PostForm
-from http import HTTPStatus
 
 
 User = get_user_model()
@@ -123,7 +124,7 @@ class PostFormsTests(TestCase):
         )
         self.assertEqual(Comment.objects.count(), comments_count + 1)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
-        self.assertTrue(Comment.objects.order_by('-created').filter(
-            pk=1,
+        self.assertTrue(Comment.objects.filter(
             author=self.user,
-            text='Тестовый комментарий',).exists())
+            text='Тестовый комментарий',
+            post=post).exists())
